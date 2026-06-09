@@ -1,0 +1,132 @@
+# Tennis-Ball-Machine Locker
+
+A parametric, 3D-printable **open-front locker** sized to hold a tennis ball
+machine of **39.2 × 27.1 × 44.8 cm** (D×W×H) with **≥1″ clearance on every
+interior face**, built from **~1″ (25.4 mm) thick panels** and rated to carry
+the **20 lb** machine.
+
+Because no single panel fits a desktop printer, every panel is **automatically
+split into bed-sized tiles** that re-join with **full-length sliding dovetails**.
+The five panels (bottom, top, back, two sides) meet at the corners with
+**sliding-dovetail housing joints + locking pins**.
+
+Everything is generated from one parametric file: [`src/locker.scad`](src/locker.scad).
+
+![assembled](renders/assembled.png)
+![exploded](renders/exploded.png)
+
+---
+
+## Which tool should I use? → OpenSCAD
+
+| Tool | Verdict for this job |
+|------|----------------------|
+| **OpenSCAD** ✅ | **Recommended & used here.** The whole design is math: exact dovetail angles, automatic bed-aware tiling, and tolerance fits are all *parameters*. Change the printer or the machine size and the model re-tiles itself. Plain-text → version-controllable in git. |
+| **Fusion 360** | Excellent and a fine alternative if you prefer a GUI and want to tweak fillets/aesthetics by hand. But the panel-splitting and 36 dovetail seams would be tedious manual work, and it's not as cleanly version-controlled. Good for *importing* these STLs to validate fit. |
+| **Meshy.ai** | ❌ Not suitable. It generates *organic* meshes from text/images and is not dimensionally precise — it cannot hold the ±0.35 mm joint tolerances that make sliding dovetails actually slide and lock. |
+
+---
+
+## Dimensions
+
+| | Width (X) | Depth (Y) | Height (Z) |
+|---|---|---|---|
+| Object | 271 mm | 392 mm | 448 mm |
+| **Interior** (object + 1″ each side) | **321.8** | **442.8** | **498.8** |
+| **Exterior** | **372.6** | **468.2** | **549.6** |
+
+- Wall thickness: **25.4 mm (1″)**
+- Front (+Y) is **fully open** so the machine slides straight in.
+- Target printer: **Bambu Lab P2S, 256 × 256 × 256 mm** (`print_env` parameter).
+
+## Tile map (36 printable parts)
+
+| Panel | Grid | Tiles | Approx. tile size (mm) |
+|-------|------|-------|------------------------|
+| bottom | 2 × 3 | 6 | 186 × 156 × 25.4 |
+| top    | 2 × 3 | 6 | 186 × 156 × 25.4 |
+| back   | 2 × 3 | 6 | 186 × 166 × 25.4 |
+| left   | 3 × 3 | 9 | 148 × 166 × 25.4 |
+| right  | 3 × 3 | 9 | 148 × 166 × 25.4 |
+
+Sliding-dovetail tongues add ≤18 mm to one or two edges of a tile; all parts
+(incl. tongues) stay inside the ~236 mm usable bed.
+
+---
+
+## Generating the parts
+
+OpenSCAD ≥ 2021 required.
+
+```bash
+# preview the whole locker / exploded view in the GUI
+openscad src/locker.scad                       # then set `mode` in the customizer
+
+# export every printable tile to ./stl  (headless-safe)
+./export_stls.sh
+```
+
+Render a single thing from the command line by overriding parameters with `-D`:
+
+```bash
+# one tile
+openscad -o stl/left_0_0.stl -D 'mode="tile"' -D 'which="left"' -D 'ti=0' -D 'tj=0' src/locker.scad
+# a whole (un-split) panel, for reference
+openscad -o ref/left.stl     -D 'mode="panel"' -D 'which="left"' src/locker.scad
+```
+
+`mode` values: `assembled`, `exploded`, `panel`, `tile`, `alltiles`.
+
+---
+
+## Print settings (functional, 20 lb load)
+
+- **Material:** PETG or PLA+ (PETG for garage/outdoor temperatures). ASA if UV-exposed.
+- **Walls:** 4–5 perimeters. **Infill:** 15–20 % gyroid is ample for 20 lb across 1″ panels.
+- **Layer height:** 0.2–0.28 mm.
+- **Orientation:** print each tile **flat** (largest face on the bed). The dovetail
+  undercuts are shallow (~11–14° from vertical) and print cleanly without supports.
+- The bottom-panel tiles carry the load — don't skimp on their perimeters.
+
+**Filament estimate:** ~25,000 cm³ of panel volume → roughly **6–9 kg** of
+filament at 15–20 % infill. This is a large, multi-day, multi-spool project. If
+that's too much, drop `wall` to 18–20 mm in the parameters (still re-tiles and
+re-joins automatically) to cut material substantially.
+
+## Hardware
+
+- **Locking pins:** 8 mm dowels or M8 bolts. Holes are pre-modelled (`pin_d`,
+  `pin_clr`) through every slid corner joint.
+- Optional CA glue or epoxy in the **tile** sliding dovetails for a permanent
+  panel; leave the **corner** joints pinned-but-unglued if you want to disassemble.
+
+---
+
+## Assembly order
+
+1. **Build each panel** from its tiles: slide neighbouring tiles together along
+   their dovetail seams (a few taps with a mallet; add glue if permanent).
+2. **Bottom** flat on the bench.
+3. **Slide both side panels** onto the bottom, front-to-back, engaging the
+   Y-running dovetails in the bottom's top face.
+4. **Drop the back panel** down into the vertical dovetail grooves in the two
+   side rear edges.
+5. **Slide the top** on front-to-back onto the side top tenons.
+6. **Insert the 8 mm pins** through each corner joint to lock everything home.
+
+---
+
+## Key parameters (`src/locker.scad`)
+
+| Parameter | Meaning | Default |
+|-----------|---------|---------|
+| `object` | machine [Depth, Width, Height] | `[392, 271, 448]` |
+| `clearance` | free space per interior side | `25.4` (1″) |
+| `wall` | panel thickness | `25.4` (1″) |
+| `print_env` | printer build volume | `[256,256,256]` (P2S) |
+| `dt_*` | tile sliding-dovetail size & fit | depth 18, fit 0.35 |
+| `mj_*` | corner sliding-dovetail size & fit | depth 12, fit 0.40 |
+| `pin_d` | locking pin diameter | 8 |
+
+Change any of these and the part count, tile sizes, and joints all update
+automatically. Tune `dt_fit`/`mj_fit` to your printer (smaller = tighter slide).

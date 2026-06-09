@@ -1,0 +1,6 @@
+# OpenSCAD / editor cruft
+*.bak
+*~
+.DS_Store
+/tmp/
+err.log
