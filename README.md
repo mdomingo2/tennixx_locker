@@ -2,7 +2,8 @@
 
 A parametric, 3D-printable **open-front locker** sized to hold a tennis ball
 machine of **39.2 × 27.1 × 44.8 cm** (D×W×H) with **≥1″ clearance on every
-interior face**, built from **~1″ (25.4 mm) thick panels** and rated to carry
+interior face**, built from **20 mm (~0.8″) thick panels** (lightweight variant —
+plenty for 20 lb; set `wall=25.4` for the full 1″ version) and rated to carry
 the **20 lb** machine.
 
 Because no single panel fits a desktop printer, every panel is **automatically
@@ -33,23 +34,23 @@ Everything is generated from one parametric file: [`src/locker.scad`](src/locker
 |---|---|---|---|
 | Object | 271 mm | 392 mm | 448 mm |
 | **Interior** (object + 1″ each side) | **321.8** | **442.8** | **498.8** |
-| **Exterior** | **372.6** | **468.2** | **549.6** |
+| **Exterior** | **361.8** | **462.8** | **538.8** |
 
-- Wall thickness: **25.4 mm (1″)**
+- Wall thickness: **20 mm (~0.8″)**
 - Front (+Y) is **fully open** so the machine slides straight in.
 - Target printer: **Bambu Lab P2S, 256 × 256 × 256 mm** (`print_env` parameter).
 
-## Tile map (36 printable parts)
+## Tile map (30 printable parts)
 
 | Panel | Grid | Tiles | Approx. tile size (mm) |
 |-------|------|-------|------------------------|
-| bottom | 2 × 3 | 6 | 186 × 156 × 25.4 |
-| top    | 2 × 3 | 6 | 186 × 156 × 25.4 |
-| back   | 2 × 3 | 6 | 186 × 166 × 25.4 |
-| left   | 3 × 3 | 9 | 148 × 166 × 25.4 |
-| right  | 3 × 3 | 9 | 148 × 166 × 25.4 |
+| bottom | 2 × 3 | 6 | 181 × 154 × 20 |
+| top    | 2 × 3 | 6 | 181 × 154 × 20 |
+| back   | 2 × 3 | 6 | 181 × 166 × 20 |
+| left   | 2 × 3 | 6 | 221 × 166 × 20 |
+| right  | 2 × 3 | 6 | 221 × 166 × 20 |
 
-Sliding-dovetail tongues add ≤18 mm to one or two edges of a tile; all parts
+Sliding-dovetail tongues add ≤14 mm to one or two edges of a tile; all parts
 (incl. tongues) stay inside the ~236 mm usable bed.
 
 ---
@@ -88,10 +89,10 @@ openscad -o ref/left.stl     -D 'mode="panel"' -D 'which="left"' src/locker.scad
   undercuts are shallow (~11–14° from vertical) and print cleanly without supports.
 - The bottom-panel tiles carry the load — don't skimp on their perimeters.
 
-**Filament estimate:** ~25,000 cm³ of panel volume → roughly **6–9 kg** of
-filament at 15–20 % infill. This is a large, multi-day, multi-spool project. If
-that's too much, drop `wall` to 18–20 mm in the parameters (still re-tiles and
-re-joins automatically) to cut material substantially.
+**Filament estimate:** ~19,000 cm³ of panel volume → roughly **4.5–6.5 kg** of
+filament at 15–20 % infill (the lightweight 20 mm variant). Still a multi-day,
+multi-spool project. `wall` is a parameter — raise it to 25.4 for full 1″ panels
+or lower it further; the model re-tiles and re-joins automatically.
 
 ## Hardware
 
@@ -109,8 +110,8 @@ re-joins automatically) to cut material substantially.
 2. **Bottom** flat on the bench.
 3. **Slide both side panels** onto the bottom, front-to-back, engaging the
    Y-running dovetails in the bottom's top face.
-4. **Drop the back panel** down into the vertical dovetail grooves in the two
-   side rear edges.
+4. **Drop the back panel** down so its two inner-face vertical dovetail grooves
+   engage the rear-edge tenons of the two side panels.
 5. **Slide the top** on front-to-back onto the side top tenons.
 6. **Insert the 8 mm pins** through each corner joint to lock everything home.
 
@@ -122,10 +123,10 @@ re-joins automatically) to cut material substantially.
 |-----------|---------|---------|
 | `object` | machine [Depth, Width, Height] | `[392, 271, 448]` |
 | `clearance` | free space per interior side | `25.4` (1″) |
-| `wall` | panel thickness | `25.4` (1″) |
+| `wall` | panel thickness | `20` (lightweight) |
 | `print_env` | printer build volume | `[256,256,256]` (P2S) |
-| `dt_*` | tile sliding-dovetail size & fit | depth 18, fit 0.35 |
-| `mj_*` | corner sliding-dovetail size & fit | depth 12, fit 0.40 |
+| `dt_*` | tile sliding-dovetail size & fit | depth 14, fit 0.35 |
+| `mj_*` | corner sliding-dovetail size & fit | depth 11, fit 0.40 |
 | `pin_d` | locking pin diameter | 8 |
 
 Change any of these and the part count, tile sizes, and joints all update

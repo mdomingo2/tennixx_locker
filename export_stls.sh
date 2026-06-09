@@ -11,7 +11,7 @@ RUN="openscad"
 command -v xvfb-run >/dev/null 2>&1 && [ -z "${DISPLAY:-}" ] && RUN="xvfb-run -a openscad"
 
 # tile grid per panel (must match ntiles() in the .scad; printed by --info below)
-declare -A NU=( [bottom]=2 [top]=2 [back]=2 [left]=3 [right]=3 )
+declare -A NU=( [bottom]=2 [top]=2 [back]=2 [left]=2 [right]=2 )
 declare -A NV=( [bottom]=3 [top]=3 [back]=3 [left]=3 [right]=3 )
 
 fail=0

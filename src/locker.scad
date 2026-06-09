@@ -26,21 +26,21 @@ corner_joints = 2;   // 0=none, 1=tongues only, 2=tongues+grooves+pins
 /* ===================== PARAMETERS (mm) ===================== */
 object      = [392, 271, 448];   // machine [Depth(X-in), Width, Height]
 clearance   = 25.4;              // >= 1" free space on every interior side
-wall        = 25.4;              // ~1" panel thickness
+wall        = 20;                // panel thickness (lightweight variant; ~0.8")
 
 print_env   = [256, 256, 256];   // Bambu Lab P2S build volume
 print_margin= 10;                // keep parts this far from bed edges
 
 // tile-to-tile sliding dovetail (cross-section flares through the wall)
-dt_depth = 18;   // how far the tongue reaches into the neighbour
-dt_root  = 11;   // neck width (at the seam face)
-dt_tip   = 18;   // widest width (locks against in-plane separation)
+dt_depth = 14;   // how far the tongue reaches into the neighbour
+dt_root  = 8;    // neck width (at the seam face)
+dt_tip   = 14;   // widest width (locks against in-plane separation); ~3mm walls @20mm
 dt_fit   = 0.35; // slide clearance added to every socket face
 
 // main panel-to-panel sliding-dovetail housing joint
-mj_depth = 12;   // groove depth into the receiving panel face
-mj_root  = 11;   // groove neck width
-mj_tip   = 17;   // groove base width (undercut) -> leaves ~4mm walls in a 1" panel
+mj_depth = 11;   // groove depth into the receiving panel face
+mj_root  = 9;    // groove neck width
+mj_tip   = 14;   // groove base width (undercut) -> leaves ~3mm walls @20mm
 mj_fit   = 0.40; // slide clearance
 mj_weld  = 1.2;  // embed tenons this far into their panel (robust CSG merge)
 
@@ -143,23 +143,24 @@ module place(n) {
    - every slid joint is locked with an 8 mm pin                              */
 // tenons are extended by mj_weld on the neck side so they embed into (overlap)
 // their own panel -> the CSG union is a solid merge, not a coplanar touch.
-module groove_bottom(cx){ translate([cx,0,wall])           rotate([0,180,0])  dt_canon(outD, mj_depth+mj_fit, mj_root+2*mj_fit, mj_tip+2*mj_fit); }
-module tenon_bottom (cx){ translate([cx,wall,wall+mj_weld]) rotate([0,180,0])  dt_canon(inD,  mj_depth+mj_weld, mj_root,        mj_tip); }
-module groove_top   (cx){ translate([cx,0,outH-wall])                          dt_canon(outD, mj_depth+mj_fit, mj_root+2*mj_fit, mj_tip+2*mj_fit); }
-module tenon_top    (cx){ translate([cx,wall,outH-wall-mj_weld])               dt_canon(inD,  mj_depth+mj_weld, mj_root,        mj_tip); }
-module side_groove  (cx){ translate([cx,wall,outH-wall])    rotate([-90,0,0]) dt_canon(inH,  mj_depth+mj_fit, mj_root+2*mj_fit, mj_tip+2*mj_fit); }
-module back_tenon   (cx){ translate([cx,wall-mj_weld,outH-wall]) rotate([-90,0,0]) dt_canon(inH, mj_depth+mj_weld, mj_root,     mj_tip); }
+// Grooves are channels in the BROAD faces of the bottom/top/back panels;
+// tenons are rails on the SIDE-panel edges. Cutting grooves only into wide
+// panels (never the thin side walls) keeps every tile a single solid.
+module groove_bottom(cx){ translate([cx,0,wall])           rotate([0,180,0]) dt_canon(outD, mj_depth+mj_fit, mj_root+2*mj_fit, mj_tip+2*mj_fit); }
+module tenon_bottom (cx){ translate([cx,wall,wall+mj_weld]) rotate([0,180,0]) dt_canon(inD,  mj_depth+mj_weld, mj_root,        mj_tip); }
+module groove_top   (cx){ translate([cx,0,outH-wall])                         dt_canon(outD, mj_depth+mj_fit, mj_root+2*mj_fit, mj_tip+2*mj_fit); }
+module tenon_top    (cx){ translate([cx,wall,outH-wall-mj_weld])              dt_canon(inD,  mj_depth+mj_weld, mj_root,        mj_tip); }
+module back_groove  (cx){ translate([cx,wall,wall])         rotate([90,0,0])  dt_canon(inH,  mj_depth+mj_fit, mj_root+2*mj_fit, mj_tip+2*mj_fit); }
+module side_rear_tenon(cx){ translate([cx,wall+mj_weld,wall]) rotate([90,0,0]) dt_canon(inH, mj_depth+mj_weld, mj_root,        mj_tip); }
 
 module tongues(n){
-    if(n=="left")  { tenon_bottom(wall/2);        tenon_top(wall/2); }
-    if(n=="right") { tenon_bottom(outW-wall/2);   tenon_top(outW-wall/2); }
-    if(n=="back")  { back_tenon(wall/2);          back_tenon(outW-wall/2); }
+    if(n=="left")  { tenon_bottom(wall/2);      tenon_top(wall/2);      side_rear_tenon(wall/2); }
+    if(n=="right") { tenon_bottom(outW-wall/2); tenon_top(outW-wall/2); side_rear_tenon(outW-wall/2); }
 }
 module grooves(n){
-    if(n=="bottom"){ groove_bottom(wall/2);       groove_bottom(outW-wall/2); }
-    if(n=="top")   { groove_top(wall/2);          groove_top(outW-wall/2); }
-    if(n=="left")  { side_groove(wall/2); }
-    if(n=="right") { side_groove(outW-wall/2); }
+    if(n=="bottom"){ groove_bottom(wall/2);  groove_bottom(outW-wall/2); }
+    if(n=="top")   { groove_top(wall/2);     groove_top(outW-wall/2); }
+    if(n=="back")  { back_groove(wall/2);    back_groove(outW-wall/2); }
 }
 
 module pins_all(){
@@ -168,8 +169,9 @@ module pins_all(){
         translate([cx, outD-35, -1])              cylinder(h=wall+2, d=pd);          // side->bottom
         translate([cx, outD-35, outH-wall-1])     cylinder(h=wall+2, d=pd);          // side->top
     }
-    translate([-1,         wall+mj_depth/2, outH/2]) rotate([0,90,0]) cylinder(h=wall+2, d=pd); // back->left
-    translate([outW-wall-1, wall+mj_depth/2, outH/2]) rotate([0,90,0]) cylinder(h=wall+2, d=pd); // back->right
+    // back<->side: horizontal pin through the back groove + side rear tenon
+    for(cx=[wall/2, outW-wall/2])
+        translate([cx-18, wall-mj_depth/2, outH/2]) rotate([0,90,0]) cylinder(h=36, d=pd);
 }
 
 /* ===================== PANEL / TILE ASSEMBLY ===================== */
