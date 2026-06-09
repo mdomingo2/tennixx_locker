@@ -16,6 +16,11 @@ Everything is generated from one parametric file: [`src/locker.scad`](src/locker
 ![assembled](renders/assembled.png)
 ![exploded](renders/exploded.png)
 
+Tile-level exploded view — all 30 printable tiles fanned apart along their
+sliding-dovetail seams, with the engraved `PANEL-col-row` sort labels visible:
+
+![exploded tiles](renders/exploded_tiles.png)
+
 ---
 
 ## Which tool should I use? → OpenSCAD
@@ -81,7 +86,9 @@ openscad -o stl/left_0_0.stl -D 'mode="tile"' -D 'which="left"' -D 'ti=0' -D 'tj
 openscad -o ref/left.stl     -D 'mode="panel"' -D 'which="left"' src/locker.scad
 ```
 
-`mode` values: `assembled`, `exploded`, `panel`, `tile`, `alltiles`.
+`mode` values: `assembled`, `exploded`, `exploded_tiles`, `panel`, `tile`, `alltiles`.
+(`exploded` separates the 5 panels; `exploded_tiles` additionally fans each
+panel's print tiles apart along their dovetail seams — gap set by `tile_explode`.)
 
 ---
 

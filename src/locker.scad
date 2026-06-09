@@ -13,7 +13,7 @@
 $fn = 48;
 
 /* [What to show] */
-// "assembled" | "exploded" | "panel" | "tile"
+// "assembled" | "exploded" | "exploded_tiles" | "panel" | "tile"
 mode = "assembled";
 // which panel for mode=="panel"/"tile":  bottom top back left right
 which = "left";
@@ -53,7 +53,8 @@ labels      = true;
 label_size  = 16;   // text height (mm)
 label_depth = 1.0;  // engrave depth (mm)
 
-explode  = 90;   // gap used by mode=="exploded"
+explode  = 90;   // gap used by mode=="exploded"/"exploded_tiles" (panels apart)
+tile_explode = 55;   // extra gap between neighbouring tiles in mode=="exploded_tiles"
 
 /* ===================== DERIVED ===================== */
 inW = object[1] + 2*clearance;        // interior width   (X)
@@ -224,11 +225,27 @@ module all_tiles(n){
     for(i=[0:nu-1]) for(j=[0:nv-1]) panel_tile(n,i,j);
 }
 
-if (mode=="assembled")      for(n=panels) panel_whole(n);
-else if (mode=="exploded")  for(n=panels) translate(outward(n)*explode) panel_whole(n);
-else if (mode=="panel")     panel_whole(which);
-else if (mode=="tile")      panel_tile(which, ti, tj);
-else if (mode=="alltiles")  all_tiles(which);
+// Full exploded assembly: each panel is pushed out along its outward normal,
+// and within every panel the individual print tiles are fanned apart along
+// their in-plane (U,V) dovetail seams so all 30 printable parts are visible.
+module exploded_tiles(){
+    for(n=panels){
+        nu=ntiles(pLu(n)); nv=ntiles(pLv(n));
+        U=pU(n); V=pV(n);
+        for(i=[0:nu-1]) for(j=[0:nv-1])
+            translate(outward(n)*explode
+                      + U*((i-(nu-1)/2)*tile_explode)
+                      + V*((j-(nv-1)/2)*tile_explode))
+                panel_tile(n,i,j);
+    }
+}
+
+if (mode=="assembled")           for(n=panels) panel_whole(n);
+else if (mode=="exploded")       for(n=panels) translate(outward(n)*explode) panel_whole(n);
+else if (mode=="exploded_tiles") exploded_tiles();
+else if (mode=="panel")          panel_whole(which);
+else if (mode=="tile")           panel_tile(which, ti, tj);
+else if (mode=="alltiles")       all_tiles(which);
 
 /* ===================== REPORT ===================== */
 echo(str("Interior  WxDxH (mm): ", inW, " x ", inD, " x ", inH));
