@@ -53,6 +53,11 @@ Everything is generated from one parametric file: [`src/locker.scad`](src/locker
 Sliding-dovetail tongues add ≤14 mm to one or two edges of a tile; all parts
 (incl. tongues) stay inside the ~236 mm usable bed.
 
+**Sort labels:** each tile is engraved (1 mm deep) with `PANEL-col-row`, e.g.
+`L-0-1`, on the face that prints upward. Panel codes: **B**=bottom, **T**=top,
+**K**=back, **L**=left, **R**=right. Toggle with `labels`, size via
+`label_size`/`label_depth`.
+
 ---
 
 ## Generating the parts

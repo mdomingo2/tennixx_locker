@@ -48,6 +48,11 @@ mj_weld  = 1.2;  // embed tenons this far into their panel (robust CSG merge)
 pin_d    = 8;
 pin_clr  = 0.30;
 
+// sort labels engraved into each tile  (B=bottom T=top K=back L=left R=right)
+labels      = true;
+label_size  = 16;   // text height (mm)
+label_depth = 1.0;  // engrave depth (mm)
+
 explode  = 90;   // gap used by mode=="exploded"
 
 /* ===================== DERIVED ===================== */
@@ -103,7 +108,7 @@ module socketV(x0, y, len, t) {
         dt_canon(len+2*dt_fit, dt_depth+dt_fit, dt_root+2*dt_fit, dt_tip+2*dt_fit);
 }
 
-module tile_local(Lu, Lv, t, nu, nv, i, j) {
+module tile_local(Lu, Lv, t, nu, nv, i, j, lbl="") {
     cu = Lu/nu;  cv = Lv/nv;
     difference() {
         union() {
@@ -113,6 +118,11 @@ module tile_local(Lu, Lv, t, nu, nv, i, j) {
         }
         if (i > 0) socketU(i*cu, j*cv - dt_fit, cv, t);
         if (j > 0) socketV(i*cu - dt_fit, j*cv, cu, t);
+        // engrave the sort label into the (local +Z) face that prints upward
+        if (labels && lbl != "")
+            translate([(i+0.5)*cu, (j+0.5)*cv, t - label_depth])
+                linear_extrude(label_depth + 0.1)
+                    text(lbl, size=label_size, halign="center", valign="center");
     }
 }
 
@@ -128,6 +138,7 @@ function pV (n)= (n=="bottom"||n=="top")?[0,1,0]:[0,0,1];
 function pN (n)= (n=="bottom"||n=="top")?[0,0,1]: n=="back"?[0,1,0]:[1,0,0];
 function pLu(n)= (n=="bottom"||n=="top"||n=="back")?outW:inD;
 function pLv(n)= (n=="bottom"||n=="top")?outD:inH;
+function pAbbr(n)= n=="bottom"?"B": n=="top"?"T": n=="back"?"K": n=="left"?"L":"R";
 
 module place(n) {
     U=pU(n); V=pV(n); N=pN(n); O=pO(n);
@@ -195,7 +206,8 @@ module panel_tile(n,i,j){
     nu=ntiles(pLu(n)); nv=ntiles(pLv(n));
     difference(){
         union(){
-            place(n) tile_local(pLu(n), pLv(n), wall, nu, nv, i, j);
+            place(n) tile_local(pLu(n), pLv(n), wall, nu, nv, i, j,
+                                str(pAbbr(n), "-", i, "-", j));
             if(corner_joints>=1) intersection(){ tongues(n); footprint(n,i,j); }
         }
         if(corner_joints>=2){ grooves(n); pins_all(); }
