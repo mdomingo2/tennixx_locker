@@ -13,7 +13,7 @@
 $fn = 48;
 
 /* [What to show] */
-// "assembled" | "exploded" | "exploded_tiles" | "panel" | "tile"
+// "assembled" | "exploded" | "exploded_tiles" | "panel" | "tile" | "pin" | "pins"
 mode = "assembled";
 // which panel for mode=="panel"/"tile":  bottom top back left right
 which = "left";
@@ -186,6 +186,29 @@ module pins_all(){
         translate([cx-18, wall-mj_depth/2, outH/2]) rotate([0,90,0]) cylinder(h=36, d=pd);
 }
 
+/* ===================== PRINTABLE LOCKING PINS =====================
+   pins_all() above only DRILLS the corner holes (diameter pin_d+2*pin_clr).
+   These are the matching solid pins to actually print (diameter pin_d), so
+   the clearance lives in the hole and the pin taps home. Print them lying
+   flat (axis on the bed) for strength — see mode=="pins".                   */
+pin_len_v = wall;   // pins through the bottom/top corners (= panel thickness)
+pin_len_h = 36;     // pins through the back<->side corners
+pin_gap   = 6;      // spacing between pins when laid out flat for printing
+
+// one pin lying along +X, with a small lead-in chamfer on the far end
+module one_pin(L){
+    rotate([0,90,0]){
+        cylinder(h=L-1.2, d=pin_d);
+        translate([0,0,L-1.2]) cylinder(h=1.2, d1=pin_d, d2=pin_d-1.6);
+    }
+}
+// all 6 pins (4 short vertical-corner + 2 long back-corner) laid flat on the bed
+module pins_print(){
+    lens = [pin_len_v, pin_len_v, pin_len_v, pin_len_v, pin_len_h, pin_len_h];
+    for(k=[0:len(lens)-1])
+        translate([0, k*(pin_d+pin_gap), pin_d/2]) one_pin(lens[k]);
+}
+
 /* ===================== PANEL / TILE ASSEMBLY ===================== */
 module panel_whole(n){
     difference(){
@@ -246,6 +269,8 @@ else if (mode=="exploded_tiles") exploded_tiles();
 else if (mode=="panel")          panel_whole(which);
 else if (mode=="tile")           panel_tile(which, ti, tj);
 else if (mode=="alltiles")       all_tiles(which);
+else if (mode=="pin")            one_pin(pin_len_h);
+else if (mode=="pins")           pins_print();
 
 /* ===================== REPORT ===================== */
 echo(str("Interior  WxDxH (mm): ", inW, " x ", inD, " x ", inH));

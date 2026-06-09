@@ -27,6 +27,15 @@ for p in bottom top back left right; do
     done
   done
 done
+
+# printable locking pins (all 6 laid out flat on the bed)
+f="$OUT/pins.stl"
+if $RUN -o "$f" -D "mode=\"pins\"" "$SCAD" 2>err.log; then
+  [ -s "$f" ] || { echo "EMPTY  $f"; fail=1; }
+else
+  echo "ERROR  $f"; cat err.log; fail=1
+fi
+
 rm -f err.log
 echo "------------------------------------------------"
 [ "$fail" -eq 0 ] && echo "All tiles exported OK -> $OUT/" || { echo "Some exports failed"; exit 1; }

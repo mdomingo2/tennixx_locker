@@ -86,7 +86,7 @@ openscad -o stl/left_0_0.stl -D 'mode="tile"' -D 'which="left"' -D 'ti=0' -D 'tj
 openscad -o ref/left.stl     -D 'mode="panel"' -D 'which="left"' src/locker.scad
 ```
 
-`mode` values: `assembled`, `exploded`, `exploded_tiles`, `panel`, `tile`, `alltiles`.
+`mode` values: `assembled`, `exploded`, `exploded_tiles`, `panel`, `tile`, `alltiles`, `pin`, `pins`.
 (`exploded` separates the 5 panels; `exploded_tiles` additionally fans each
 panel's print tiles apart along their dovetail seams — gap set by `tile_explode`.)
 
@@ -108,8 +108,12 @@ or lower it further; the model re-tiles and re-joins automatically.
 
 ## Hardware
 
-- **Locking pins:** 8 mm dowels or M8 bolts. Holes are pre-modelled (`pin_d`,
-  `pin_clr`) through every slid corner joint.
+- **Locking pins:** use 8 mm dowels / M8 bolts, **or print the included pins**
+  ([`stl/pins.stl`](stl/pins.stl) — all 6 laid out flat). The corner holes are
+  pre-modelled (`pin_d`, `pin_clr`) through every slid joint; the printed pins
+  are solid `pin_d` rods (clearance lives in the hole) with a lead-in chamfer.
+  There are **6 pins**: 4 short (= panel thickness, `pin_len_v`) at the
+  bottom/top side corners and 2 long (`pin_len_h`, 36 mm) at the back corners.
 - Optional CA glue or epoxy in the **tile** sliding dovetails for a permanent
   panel; leave the **corner** joints pinned-but-unglued if you want to disassemble.
 
